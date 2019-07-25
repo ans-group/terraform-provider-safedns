@@ -61,4 +61,13 @@ terraform apply
 - `zone_name`: (Required) Name of zone for record e.g. `example.com`
 - `type`: (Required) Type of record
 - `content`: (Required) Content for record
-- `priority`: Priority of record
+- `priority`: Priority of 
+
+## Data sources
+
+### safedns_zone
+
+**Schema**
+
+- `name`: (Required) Name of zone e.g. `example.com`
+- `description`: Description for zone

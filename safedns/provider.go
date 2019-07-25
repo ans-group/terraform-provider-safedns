@@ -11,8 +11,8 @@ import (
 )
 
 func Provider() *schema.Provider {
-	return &schema.Provider{ 
-		Schema: map[string]*schema.Schema{ 
+	return &schema.Provider{
+		Schema: map[string]*schema.Schema{
 			"api_key": &schema.Schema{
 				Type:      schema.TypeString,
 				Optional:  true,
@@ -22,11 +22,14 @@ func Provider() *schema.Provider {
 					if key != "" {
 						return key, nil
 					}
- 
+
 					return "", errors.New("api_key required")
 				},
 				Description: "API token required to authenticate with UKFast APIs. See https://developers.ukfast.io for more details",
 			},
+		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"safedns_zone": dataSourceZone(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"safedns_zone":   resourceZone(),
