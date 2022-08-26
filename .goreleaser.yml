@@ -1,6 +1,3 @@
-before:
-  hooks:
-    - go mod tidy
 builds:
 - env:
     - CGO_ENABLED=0
@@ -28,8 +25,22 @@ archives:
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
 release:
-  disable: true
+  github:
+    owner: ans-group
+    name: terraform-provider-safedns
+  # If you want to manually examine the release before its live, uncomment this line:
+  # draft: true
 changelog:
   sort: asc
   filters:
