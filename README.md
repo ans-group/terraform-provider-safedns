@@ -22,4 +22,4 @@ terraform apply
 
 ## Documentation
 
-Documentation is located within this repository at `/docs`, and is published in the [Terraform Registry](https://registry.terraform.io/providers/ukfast/safedns/latest/docs)
+Documentation is located within this repository at `/docs`, and is published in the [Terraform Registry](https://registry.terraform.io/providers/ans-group/safedns/latest/docs)
