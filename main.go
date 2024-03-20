@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/ans-group/terraform-provider-safedns/safedns"
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.devops.ukfast.co.uk/ukfast/api.ukfast/client-libraries/terraform-provider-safedns/safedns"
 )
 
 func main() {

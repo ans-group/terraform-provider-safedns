@@ -1,3 +1,4 @@
 terraform-provider-safedns*
 .terraform/
 dist/
+.idea/
