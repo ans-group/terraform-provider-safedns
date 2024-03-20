@@ -18,7 +18,7 @@ require (
 	github.com/apparentlymart/go-cidr v1.0.1 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.25.3 // indirect
+	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20190821133035-82a99dc22ef4 // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20191011084731-65d371908596 // indirect
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
