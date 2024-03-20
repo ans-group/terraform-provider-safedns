@@ -2,9 +2,10 @@ package safedns
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
 	"log"
+
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceZone() *schema.Resource {

@@ -3,8 +3,8 @@ package safedns
 import (
 	"fmt"
 
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
 	"github.com/hashicorp/terraform/helper/schema"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
 )
 
 func dataSourceZone() *schema.Resource {

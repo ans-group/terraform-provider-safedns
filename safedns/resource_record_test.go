@@ -1,31 +1,32 @@
 package safedns
 
 import (
-	"strconv"
 	"fmt"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
+	"strconv"
+	"testing"
+
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
-func TestAccRecord_basic(t *testing.T) { 
+func TestAccRecord_basic(t *testing.T) {
 	var record safednsservice.Record
 	resourceName := "safedns_record.test-record"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordDestroy, 
+		CheckDestroy: testAccCheckRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckRecordConfig_basic, UKF_TEST_ZONE_NAME, UKF_TEST_RECORD_NAME),
-				Check: resource.ComposeTestCheckFunc( 
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRecordExists(resourceName, &record),
-					resource.TestCheckResourceAttr(resourceName, "zone_name", UKF_TEST_ZONE_NAME), 
+					resource.TestCheckResourceAttr(resourceName, "zone_name", UKF_TEST_ZONE_NAME),
 					resource.TestCheckResourceAttr(resourceName, "type", "A"),
 					resource.TestCheckResourceAttr(resourceName, "content", "10.0.0.1"),
-				), 
+				),
 			},
 		},
 	})
@@ -46,18 +47,18 @@ func testAccCheckRecordExists(n string, record *safednsservice.Record) resource.
 
 		recordID, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
-			return err 
+			return err
 		}
-		
+
 		zoneName := rs.Primary.Attributes["zone_name"]
 
 		getRecord, err := service.GetZoneRecord(zoneName, recordID)
 		if err != nil {
 			if _, ok := err.(*safednsservice.ZoneRecordNotFoundError); ok {
 				return nil
-			} 
+			}
 			return err
-		}  
+		}
 
 		*record = getRecord
 
@@ -77,7 +78,7 @@ func testAccCheckRecordDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		
+
 		zoneName := rs.Primary.Attributes["zone_name"]
 
 		_, err = service.GetZoneRecord(zoneName, recordID)

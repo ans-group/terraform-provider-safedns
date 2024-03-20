@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
 )
 
 func TestAccDataSourceZone(t *testing.T) {

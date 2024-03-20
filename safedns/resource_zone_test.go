@@ -2,10 +2,11 @@ package safedns
 
 import (
 	"fmt"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
+	"testing"
+
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
 func TestAccZone_basic(t *testing.T) {

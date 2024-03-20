@@ -4,10 +4,10 @@ import (
 	"errors"
 	"os"
 
+	"github.com/ans-group/sdk-go/pkg/client"
+	"github.com/ans-group/sdk-go/pkg/connection"
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/ukfast/sdk-go/pkg/client"
-	"github.com/ukfast/sdk-go/pkg/connection"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
 )
 
 func Provider() *schema.Provider {

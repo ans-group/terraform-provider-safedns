@@ -5,9 +5,9 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/ans-group/sdk-go/pkg/ptr"
+	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/ukfast/sdk-go/pkg/ptr"
-	safednsservice "github.com/ukfast/sdk-go/pkg/service/safedns"
 )
 
 func resourceRecord() *schema.Resource {
