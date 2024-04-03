@@ -1,21 +1,24 @@
 package safedns
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"log"
 
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceZoneCreate,
-		Read:   resourceZoneRead,
-		Update: resourceZoneUpdate,
-		Delete: resourceZoneDelete,
+		CreateContext: resourceZoneCreate,
+		ReadContext:   resourceZoneRead,
+		UpdateContext: resourceZoneUpdate,
+		DeleteContext: resourceZoneDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -33,7 +36,7 @@ func resourceZone() *schema.Resource {
 	}
 }
 
-func resourceZoneCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceZoneCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	zoneName := d.Get("name").(string)
@@ -42,20 +45,23 @@ func resourceZoneCreate(d *schema.ResourceData, meta interface{}) error {
 		Name:        zoneName,
 		Description: d.Get("description").(string),
 	}
-	log.Printf("Created CreateZoneRequest: %+v", createReq)
+	tflog.Debug(ctx, "Created CreateZoneRequest", map[string]interface{}{
+		"createReq": createReq,
+	})
 
-	log.Print("Creating zone")
+	tflog.Info(ctx, "Creating zone")
+
 	err := service.CreateZone(createReq)
 	if err != nil {
-		return fmt.Errorf("Error creating zone: %s", err)
+		return diag.Errorf("Error creating zone: %s", err)
 	}
 
 	d.SetId(zoneName)
 
-	return resourceZoneRead(d, meta)
+	return resourceZoneRead(ctx, d, meta)
 }
 
-func resourceZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourceZoneRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	zoneName := d.Id()
@@ -63,12 +69,13 @@ func resourceZoneRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("Retrieving zone with name [%s]", zoneName)
 	zone, err := service.GetZone(zoneName)
 	if err != nil {
-		switch err.(type) {
-		case *safednsservice.ZoneNotFoundError:
+		var zoneNotFoundError *safednsservice.ZoneNotFoundError
+		switch {
+		case errors.As(err, &zoneNotFoundError):
 			d.SetId("")
 			return nil
 		default:
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
@@ -78,7 +85,7 @@ func resourceZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceZoneUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceZoneUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	patchRequest := safednsservice.PatchZoneRequest{}
@@ -89,24 +96,30 @@ func resourceZoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		patchRequest.Description = d.Get("description").(string)
 	}
 
-	log.Printf("Updating zone with name [%s]", zoneName)
+	tflog.Info(ctx, "Updating zone", map[string]interface{}{
+		"zone_name": zoneName,
+	})
+
 	err := service.PatchZone(zoneName, patchRequest)
 	if err != nil {
-		return fmt.Errorf("Error updating zone with name [%s]", zoneName)
+		return diag.Errorf("Error updating zone with name [%s]", zoneName)
 	}
 
-	return resourceZoneRead(d, meta)
+	return resourceZoneRead(ctx, d, meta)
 }
 
-func resourceZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceZoneDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	zoneName := d.Id()
 
-	log.Printf("Removing zone with name [%s]", zoneName)
+	tflog.Info(ctx, "Removing zone", map[string]interface{}{
+		"zone_name": zoneName,
+	})
+
 	err := service.DeleteZone(zoneName)
 	if err != nil {
-		return fmt.Errorf("Error removing zone with name [%s]: %s", zoneName, err)
+		return diag.Errorf("Error removing zone with name [%s]: %s", zoneName, err)
 	}
 
 	return nil

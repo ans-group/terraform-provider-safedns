@@ -4,24 +4,23 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/schema" 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider 
- 
+var testAccProviders map[string]func() (*schema.Provider, error)
+var testAccProvider *schema.Provider
+
 var (
-	UKF_TEST_ZONE_NAME       = os.Getenv("UKF_TEST_ZONE_NAME") 
-	UKF_TEST_RECORD_NAME     = os.Getenv("UKF_TEST_RECORD_NAME")
+	UKF_TEST_ZONE_NAME   = os.Getenv("UKF_TEST_ZONE_NAME")
+	UKF_TEST_RECORD_NAME = os.Getenv("UKF_TEST_RECORD_NAME")
 )
 
-func init() { 
-	testAccProvider = Provider()   
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"safedns": testAccProvider,
+func init() {
+	testAccProvider = Provider()
+	testAccProviders = map[string]func() (*schema.Provider, error){
+		"safedns": func() (*schema.Provider, error) { return testAccProvider, nil },
 	}
-} 
+}
 
 func TestProvider(t *testing.T) {
 	if err := Provider().InternalValidate(); err != nil {
@@ -30,14 +29,14 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ *schema.Provider = Provider()
 }
 
 func testAccPreCheck(t *testing.T) {
 	testAccPreCheckRequiredEnvVars(t)
 }
 
-func testAccPreCheckRequiredEnvVars(t *testing.T) { 
+func testAccPreCheckRequiredEnvVars(t *testing.T) {
 	if UKF_TEST_ZONE_NAME == "" {
 		t.Fatal("UKF_TEST_ZONE_NAME must be set for acceptance tests")
 	}

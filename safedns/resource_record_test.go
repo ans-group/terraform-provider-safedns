@@ -1,13 +1,14 @@
 package safedns
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
 
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccRecord_basic(t *testing.T) {
@@ -15,9 +16,9 @@ func TestAccRecord_basic(t *testing.T) {
 	resourceName := "safedns_record.test-record"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRecordDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckRecordConfig_basic, UKF_TEST_ZONE_NAME, UKF_TEST_RECORD_NAME),
@@ -54,7 +55,8 @@ func testAccCheckRecordExists(n string, record *safednsservice.Record) resource.
 
 		getRecord, err := service.GetZoneRecord(zoneName, recordID)
 		if err != nil {
-			if _, ok := err.(*safednsservice.ZoneRecordNotFoundError); ok {
+			var zoneRecordNotFoundError *safednsservice.ZoneRecordNotFoundError
+			if errors.As(err, &zoneRecordNotFoundError) {
 				return nil
 			}
 			return err
@@ -86,7 +88,8 @@ func testAccCheckRecordDestroy(s *terraform.State) error {
 			return fmt.Errorf("Record with id [%d] still exists", recordID)
 		}
 
-		if _, ok := err.(*safednsservice.ZoneRecordNotFoundError); ok {
+		var zoneRecordNotFoundError *safednsservice.ZoneRecordNotFoundError
+		if errors.As(err, &zoneRecordNotFoundError) {
 			return nil
 		}
 
