@@ -7,7 +7,7 @@ import (
 	"github.com/ans-group/sdk-go/pkg/client"
 	"github.com/ans-group/sdk-go/pkg/connection"
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func Provider() *schema.Provider {

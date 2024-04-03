@@ -1,12 +1,13 @@
 package safedns
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccZone_basic(t *testing.T) {
@@ -14,9 +15,9 @@ func TestAccZone_basic(t *testing.T) {
 	resourceName := "safedns_zone.test-zone"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckZoneDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckZoneConfig_basic, UKF_TEST_ZONE_NAME),
@@ -47,7 +48,8 @@ func testAccCheckZoneExists(n string, zone *safednsservice.Zone) resource.TestCh
 
 		getZone, err := service.GetZone(zoneName)
 		if err != nil {
-			if _, ok := err.(*safednsservice.ZoneNotFoundError); ok {
+			var zoneNotFoundError *safednsservice.ZoneNotFoundError
+			if errors.As(err, &zoneNotFoundError) {
 				return nil
 			}
 			return err
@@ -74,7 +76,8 @@ func testAccCheckZoneDestroy(s *terraform.State) error {
 			return fmt.Errorf("Zone with name [%s] still exists", zoneName)
 		}
 
-		if _, ok := err.(*safednsservice.ZoneNotFoundError); ok {
+		var zoneNotFoundError *safednsservice.ZoneNotFoundError
+		if errors.As(err, &zoneNotFoundError) {
 			return nil
 		}
 

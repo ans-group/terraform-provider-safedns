@@ -1,23 +1,25 @@
 package safedns
 
 import (
-	"fmt"
-	"log"
+	"context"
+	"errors"
 	"strconv"
 
 	"github.com/ans-group/sdk-go/pkg/ptr"
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRecordCreate,
-		Read:   resourceRecordRead,
-		Update: resourceRecordUpdate,
-		Delete: resourceRecordDelete,
+		CreateContext: resourceRecordCreate,
+		ReadContext:   resourceRecordRead,
+		UpdateContext: resourceRecordUpdate,
+		DeleteContext: resourceRecordDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -49,7 +51,7 @@ func resourceRecord() *schema.Resource {
 	}
 }
 
-func resourceRecordCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRecordCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	createReq := safednsservice.CreateRecordRequest{
@@ -62,34 +64,41 @@ func resourceRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	if priority > 0 {
 		createReq.Priority = ptr.Int(priority)
 	}
-	log.Printf("Created CreateRecordRequest: %+v", createReq)
+	tflog.Debug(ctx, "Created CreateRecordRequest", map[string]interface{}{
+		"request": createReq,
+	})
 
-	log.Print("Creating record")
+	tflog.Info(ctx, "Creating record")
 	recordID, err := service.CreateZoneRecord(d.Get("zone_name").(string), createReq)
 	if err != nil {
-		return fmt.Errorf("Error creating record: %s", err)
+		return diag.Errorf("Error creating record: %s", err)
 	}
 
 	d.SetId(strconv.Itoa(recordID))
 
-	return resourceRecordRead(d, meta)
+	return resourceRecordRead(ctx, d, meta)
 }
 
-func resourceRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRecordRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	zoneName := d.Get("zone_name").(string)
 	recordID, _ := strconv.Atoi(d.Id())
 
-	log.Printf("Retrieving record with id [%d] in zone [%s]", recordID, zoneName)
+	tflog.Info(ctx, "Retrieving record", map[string]interface{}{
+		"zone_name": zoneName,
+		"record_id": recordID,
+	})
+
 	record, err := service.GetZoneRecord(zoneName, recordID)
 	if err != nil {
-		switch err.(type) {
-		case *safednsservice.ZoneRecordNotFoundError:
+		var zoneRecordNotFoundError *safednsservice.ZoneRecordNotFoundError
+		switch {
+		case errors.As(err, &zoneRecordNotFoundError):
 			d.SetId("")
 			return nil
 		default:
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
@@ -101,7 +110,7 @@ func resourceRecordRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceRecordUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRecordUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	patchRequest := safednsservice.PatchRecordRequest{}
@@ -116,24 +125,30 @@ func resourceRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 		patchRequest.Priority = ptr.Int(d.Get("priority").(int))
 	}
 
-	log.Printf("Updating record with id [%d]", recordID)
+	tflog.Info(ctx, "Updating record", map[string]interface{}{
+		"record_id": recordID,
+	})
+
 	_, err := service.PatchZoneRecord(zoneName, recordID, patchRequest)
 	if err != nil {
-		return fmt.Errorf("Error updating record with id [%d]", recordID)
+		return diag.Errorf("Error updating record with id [%d]", recordID)
 	}
 
-	return resourceRecordRead(d, meta)
+	return resourceRecordRead(ctx, d, meta)
 }
 
-func resourceRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRecordDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	recordID, _ := strconv.Atoi(d.Id())
 
-	log.Printf("Removing record with id [%d]", recordID)
+	tflog.Info(ctx, "Deleting record", map[string]interface{}{
+		"record_id": recordID,
+	})
+
 	err := service.DeleteZoneRecord(d.Get("zone_name").(string), recordID)
 	if err != nil {
-		return fmt.Errorf("Error removing record with id [%d]: %s", recordID, err)
+		return diag.Errorf("Error removing record with id [%d]: %s", recordID, err)
 	}
 
 	return nil

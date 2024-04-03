@@ -1,15 +1,16 @@
 package safedns
 
 import (
-	"fmt"
+	"context"
 
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceZone() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceZoneRead,
+		ReadContext: dataSourceZoneRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
@@ -24,14 +25,14 @@ func dataSourceZone() *schema.Resource {
 	}
 }
 
-func dataSourceZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceZoneRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := meta.(safednsservice.SafeDNSService)
 
 	name := d.Get("name").(string)
 
 	zone, err := service.GetZone(name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving zone: %s", err)
+		return diag.Errorf("Error retrieving zone: %s", err)
 	}
 
 	d.SetId(zone.Name)
