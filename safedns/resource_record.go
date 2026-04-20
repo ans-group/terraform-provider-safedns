@@ -3,7 +3,9 @@ package safedns
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/ans-group/sdk-go/pkg/ptr"
 	safednsservice "github.com/ans-group/sdk-go/pkg/service/safedns"
@@ -19,7 +21,7 @@ func resourceRecord() *schema.Resource {
 		UpdateContext: resourceRecordUpdate,
 		DeleteContext: resourceRecordDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceRecordImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -152,4 +154,25 @@ func resourceRecordDelete(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	return nil
+}
+
+func resourceRecordImportState(_ context.Context, d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("invalid import ID %s: expected <zone_name>/<record_id>", d.Id())
+	}
+
+	zoneName := parts[0]
+	recordID := parts[1]
+
+	if _, err := strconv.Atoi(recordID); err != nil {
+		return nil, fmt.Errorf("invalid record_id %s in import ID %s: %w", recordID, d.Id(), err)
+	}
+
+	if err := d.Set("zone_name", zoneName); err != nil {
+		return nil, fmt.Errorf("failed to set zone_name during import: %w", err)
+	}
+	d.SetId(recordID)
+
+	return []*schema.ResourceData{d}, nil
 }

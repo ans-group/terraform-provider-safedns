@@ -20,3 +20,13 @@ resource "safedns_record" "example-record-1" {
 * `type`: (Required) Type of record
 * `content`: (Required) Content for record
 * `priority`: Priority of record
+
+## Import
+
+Import format:
+
+```bash
+terraform import safedns_record.example-record-1 example.com/12345
+```
+
+Where `example.com` is `zone_name` and `12345` is the SafeDNS record ID.

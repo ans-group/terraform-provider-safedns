@@ -29,6 +29,16 @@ func TestAccRecord_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "content", "10.0.0.1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs := s.RootModule().Resources[resourceName]
+					zoneName := rs.Primary.Attributes["zone_name"]
+					return fmt.Sprintf("%s/%s", zoneName, rs.Primary.ID), nil
+				},
+			},
 		},
 	})
 }
